@@ -1,0 +1,58 @@
+zabbix_export:
+  version: '6.2'
+  date: '2023-09-27T14:51:25Z'
+  template_groups:
+    -
+      uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    -
+      uuid: 3dd7edfd5e9b432ab99bd5c90d0b2333
+      template: 'Cron job monitoring'
+      name: 'Cron job monitoring'
+      description: 'check cron job exit codes'
+      groups:
+        -
+          name: Templates/Applications
+      discovery_rules:
+        -
+          uuid: 7e25d796b4374b51ab6dd4f7c73f3fe8
+          name: 'Discovery jobs'
+          key: 'vfs.file.contents[{$DISCOVERY_FILE}]'
+          delay: 10m
+          item_prototypes:
+            -
+              uuid: d9c6bd1c7cd04e8297756f891ec08d52
+              name: 'Cron ''{#NAME}'' status'
+              type: TRAP
+              key: 'trap[{#NAME}]'
+              delay: '0'
+              trigger_prototypes:
+                -
+                  uuid: 44bcb9bf5f0c45fd987803c586b0791b
+                  expression: 'last(/Cron job monitoring/trap[{#NAME}])<>0'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Cron job monitoring/trap[{#NAME}])=0'
+                  name: 'Crontab ''{#NAME}'' was interrupted'
+                  priority: AVERAGE
+                  manual_close: 'YES'
+          preprocessing:
+            -
+              type: JAVASCRIPT
+              parameters:
+                - |
+                  var elements = value.split('\n')
+                  
+                  var list = [];
+                  
+                  for (var i = 0; i < elements.length; i++) {
+                    list.push({"{#NAME}": elements[i]})
+                  }
+                  
+                  
+                  return JSON.stringify(list);
+      macros:
+        -
+          macro: '{$DISCOVERY_FILE}'
+          value: /etc/zabbix/zabbix_agent2.d/cron_discovery
+          description: 'path to file with tasks to discovery'
