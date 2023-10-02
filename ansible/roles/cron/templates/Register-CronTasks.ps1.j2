@@ -1,0 +1,61 @@
+#!/snap/bin/pwsh
+$dir = '/etc/cron.d'
+$discovery_file = "{{ cron_discovery_file }}"
+$ansible_string = "#ansible_managed cron task"
+$dirList = [System.Collections.ArrayList]@('/etc/cron.daily', '/etc/cron.hourly', '/etc/cron.weekly', '/etc/cron.monthly')
+
+function Invoke-Sudo {
+    & /usr/bin/env sudo pwsh -command "& $args"
+}
+
+function Convert-CronScripts {
+        param (
+                [string]$DirCronScripts
+        )
+        $dir_moved_scripts = $DirCronScripts + '/scripts'
+        if (!(Test-Path $dir_moved_scripts)) {
+                New-Item $dir_moved_scripts -type "directory"
+        }
+
+        Write-Output $dir_moved_scripts
+        Get-ChildItem -Path $DirCronScripts -File  | ForEach-Object {
+                $file = $PSItem.FullName
+                $cronname = $_.NAME
+                if ((Select-String $file -Pattern $ansible_string) -eq $null) {
+                        $moved_file = Move-Item $file -Destination $dir_moved_scripts -PassThru
+                        $zabbix_file = $file + '_zabbix'
+                        Write-Output $zabbix_file
+                        if (!(Test-Path $zabbix_file)) {
+                                New-Item $zabbix_file -type "file"
+                                Invoke-Sudo "chmod +x $zabbix_file"
+                        }
+                        Clear-Content $zabbix_file
+                        Add-Content $zabbix_file -Value '#!/bin/bash'
+                        Add-Content $zabbix_file -Value $ansible_string
+                        Add-Content $zabbix_file -Value "$moved_file ; zabbix_sender -z {{ cron_zabbix_server }} -s {{ cron_zabbix_client }} -k trap[$cronname] -o `$? >> /var/log/cron/$cronname"
+                }
+        }
+        Get-ChildItem -Path $dir_moved_scripts -Recurse -File  | ForEach-Object {
+                $cronname = ($_.NAME)
+                Add-Content $discovery_file -Value $cronname
+        }
+}
+
+if (!(Test-Path $discovery_file)) {
+   New-Item $discovery_file -type "file"
+}
+Clear-Content $discovery_file
+
+Get-ChildItem -Path $dir -Recurse -File  | ForEach-Object {
+        $cronname = ($_.NAME)
+        $file = $_.PSPATH
+        Add-Content $discovery_file -Value $cronname
+        $find_string = "; zabbix_sender -z {{ cron_zabbix_server }} -s {{ cron_zabbix_client }} -k trap\[$cronname\] -o \`$\? >> \/var\/log\/cron\/$cronname"
+        Write-Output $find_string
+        $add_string = "; zabbix_sender -z {{ cron_zabbix_server }} -s {{ cron_zabbix_client }} -k trap[$cronname] -o `$? >> /var/log/cron/$cronname"
+        (Get-Content $file) -replace "^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*(\/\d+)?) ?){5,7}) (\w+) (((?!\$find_string).)*)$", "`$6 `$13 `$14 $add_string" | Set-Content $file
+}
+
+foreach ($dir in $dirList) {
+        Convert-CronScripts $dir
+}
