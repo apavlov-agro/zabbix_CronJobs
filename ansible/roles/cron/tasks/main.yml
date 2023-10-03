@@ -1,25 +1,19 @@
 ---
 - name: copy job exec file
   template:
-    src: "{{ item.template }}"
-    dest: "{{ item.job }}"
+    src: "Register-CronTasks.ps1.j2"
+    dest: "/usr/local/bin/Register-CronTasks.ps1"
     mode: 0740
-  when: item.template is defined
-  with_items:
-    - "{{ cron_discovery_tasks }}"
 
 - name: Creates a cron file under /etc/cron.d
   cron:
-    name: "{{ item.name }}"
-    weekday: "{{ item.weekday }}"
-    minute: "{{ item.minute }}"
-    hour: "{{ item.hour }}"
-    user: "{{ item.user | default ('root') }}"
-    job: "{{ item.job }}"
-    cron_file: "ansible_{{ item.name }}"
-  with_items:
-    - "{{ cron_discovery_tasks }}"
-  when: cron_discovery_tasks is defined
+    name: "zabbix_discovery_tasks"
+    weekday: "*"
+    minute: "40"
+    hour: "3"
+    user: "root "
+    job: "/usr/local/bin/Register-CronTasks.ps1"
+    cron_file: "ansible_zabbix_discovery_tasks"
 
 
 
