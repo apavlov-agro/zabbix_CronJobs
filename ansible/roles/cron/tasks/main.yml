@@ -8,9 +8,11 @@
 - name: Creates a cron file under /etc/cron.d
   cron:
     name: "zabbix_discovery_tasks"
-    weekday: "*"
-    minute: "40"
-    hour: "3"
+    minute: "{{ cron_discovery_task.minute | default ('*')}}"
+    hour: "{{ cron_discovery_task.hour | default ('*') }}"
+    day: "{{ cron_discovery_task.dom | default ('*') }}"
+    month: "{{ cron_discovery_task.month | default ('*') }}"
+    weekday: "{{ cron_discovery_task.dow | default ('*') }}"
     user: "root "
     job: "/usr/local/bin/Register-CronTasks.ps1"
     cron_file: "ansible_zabbix_discovery_tasks"
