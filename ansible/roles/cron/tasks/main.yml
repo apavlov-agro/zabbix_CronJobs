@@ -1,4 +1,9 @@
 ---
+- name: Ensure zabbix sender installed
+  apt:
+    update_cache: yes
+    name: zabbix-sender
+
 - name: copy job exec file
   template:
     src: "Register-CronTasks.ps1.j2"
