@@ -14,7 +14,7 @@ function Convert-CronScripts {
         )
         $dir_moved_scripts = $DirCronScripts + '/scripts'
         if (!(Test-Path $dir_moved_scripts)) {
-   New-Item $dir_moved_scripts -type "directory"
+            New-Item $dir_moved_scripts -type "directory"
         }
 
         Write-Output $dir_moved_scripts
@@ -42,7 +42,7 @@ function Convert-CronScripts {
 }
 
 if (!(Test-Path $discovery_file)) {
-   New-Item $discovery_file -type "file"
+    New-Item $discovery_file -type "file"
 }
 Clear-Content $discovery_file
 
