@@ -1,4 +1,9 @@
 ---
+- name: Ensure zabbix sender installed
+  apt:
+    update_cache: yes
+    name: zabbix-sender
+
 - name: copy job exec file
   template:
     src: "Register-CronTasks.ps1.j2"
@@ -10,9 +15,9 @@
     name: "zabbix_discovery_tasks"
     minute: "{{ cron_discovery_task.minute | default ('*')}}"
     hour: "{{ cron_discovery_task.hour | default ('*') }}"
-    day: "{{ cron_discovery_task.dom | default ('*') }}"
+    day: "{{ cron_discovery_task.day | default ('*') }}"
     month: "{{ cron_discovery_task.month | default ('*') }}"
-    weekday: "{{ cron_discovery_task.dow | default ('*') }}"
+    weekday: "{{ cron_discovery_task.weekday | default ('*') }}"
     user: "root "
     job: "/usr/local/bin/Register-CronTasks.ps1"
     cron_file: "ansible_zabbix_discovery_tasks"

@@ -14,7 +14,7 @@ function Convert-CronScripts {
         )
         $dir_moved_scripts = $DirCronScripts + '/scripts'
         if (!(Test-Path $dir_moved_scripts)) {
-                New-Item $dir_moved_scripts -type "directory"
+            New-Item $dir_moved_scripts -type "directory"
         }
 
         Write-Output $dir_moved_scripts
@@ -42,7 +42,7 @@ function Convert-CronScripts {
 }
 
 if (!(Test-Path $discovery_file)) {
-   New-Item $discovery_file -type "file"
+    New-Item $discovery_file -type "file"
 }
 Clear-Content $discovery_file
 
@@ -53,7 +53,11 @@ Get-ChildItem -Path $dir -Recurse -File  | ForEach-Object {
         $find_string = "; zabbix_sender -z {{ cron_zabbix_server }} -s {{ cron_zabbix_client }} -k trap\[$cronname\] -o \`$\? >> \/var\/log\/cron\/$cronname"
         Write-Output $find_string
         $add_string = "; zabbix_sender -z {{ cron_zabbix_server }} -s {{ cron_zabbix_client }} -k trap[$cronname] -o `$? >> /var/log/cron/$cronname"
-        (Get-Content $file) -replace "^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*(\/\d+)?) ?){5,7}) (\w+) (((?!\$find_string).)*)$", "`$6 `$13 `$14 $add_string" | Set-Content $file
+        (Get-Content $file) -replace "^(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*(\/\d+)?) ?){4,7}((Sun|Mon|Tue|Wed|Thu|Fri|Sat|Sun),?){0,5}) (\w+) (((?!\$find_string).)*)$", "`$6 `$15 `$16 $add_string" | Set-Content $file
+        $ok_register = Select-String -Path $file -Pattern $find_string -Quiet
+        if (!(Select-String -Path $file -Pattern $find_string -Quiet)) {
+             zabbix_sender -z {{ cron_zabbix_server }} -s {{ cron_zabbix_client }} -k trap[$cronname] -o '112'
+        }
 }
 
 foreach ($dir in $dirList) {
