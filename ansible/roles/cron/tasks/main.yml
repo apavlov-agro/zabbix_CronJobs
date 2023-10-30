@@ -4,6 +4,11 @@
     update_cache: yes
     name: zabbix-sender
 
+- name: Ensure cron log dir exists
+  file:
+    path: {{ cron_zabbix_log_path }}
+    state: directory
+
 - name: copy job exec file
   template:
     src: "Register-CronTasks.ps1.j2"

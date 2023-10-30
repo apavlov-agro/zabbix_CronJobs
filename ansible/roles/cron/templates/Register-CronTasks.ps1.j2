@@ -32,7 +32,7 @@ function Convert-CronScripts {
                         Clear-Content $zabbix_file
                         Add-Content $zabbix_file -Value '#!/bin/bash'
                         Add-Content $zabbix_file -Value $ansible_string
-                        Add-Content $zabbix_file -Value "$moved_file ; zabbix_sender -z {{ cron_zabbix_server }} -s {{ cron_zabbix_client }} -k trap[$cronname] -o `$? >> /var/log/cron/$cronname"
+                        Add-Content $zabbix_file -Value "$moved_file ; zabbix_sender -z {{ cron_zabbix_server }} -s {{ cron_zabbix_client }} -k trap[$cronname] -o `$? >> {{ cron_zabbix_log_path }}/$cronname"
                 }
         }
         Get-ChildItem -Path $dir_moved_scripts -Recurse -File  | ForEach-Object {

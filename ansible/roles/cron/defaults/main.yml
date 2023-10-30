@@ -8,3 +8,4 @@ cron_discovery_task:
 cron_discovery_file: '/etc/zabbix/zabbix_agent2.d/cron_discovery'
 cron_zabbix_server: "localhost"
 cron_zabbix_client: "client"
+cron_zabbix_log_path: "/var/log/cron"
