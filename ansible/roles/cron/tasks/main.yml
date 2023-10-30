@@ -24,8 +24,8 @@
     month: "{{ cron_discovery_task.month | default ('*') }}"
     weekday: "{{ cron_discovery_task.weekday | default ('*') }}"
     user: "root "
-    job: "/usr/local/bin/Register-CronTasks.ps1"
-    cron_file: "ansible_zabbix_discovery_tasks ; zabbix_sender -z zabbix.agrohistory.local -s mongodbmn-02.agrohistory.local -k trap[ansible_zabbix_discovery_tasks] -o $? >> /var/log/cron/ansible_zabbix_discovery_tasks"
+    job: "/usr/local/bin/Register-CronTasks.ps1 ; zabbix_sender -z zabbix.agrohistory.local -s mongodbmn-02.agrohistory.local -k trap[ansible_zabbix_discovery_tasks] -o $? >> /var/log/cron/ansible_zabbix_discovery_tasks"
+    cron_file: "ansible_zabbix_discovery_tasks"
 
 
 
