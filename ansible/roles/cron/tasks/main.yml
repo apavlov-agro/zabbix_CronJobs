@@ -4,6 +4,11 @@
     update_cache: yes
     name: zabbix-sender
 
+- name: Ensure cron log dir exists
+  file:
+    path: "{{ cron_zabbix_log_path }}"
+    state: directory
+
 - name: copy job exec file
   template:
     src: "Register-CronTasks.ps1.j2"
@@ -19,7 +24,7 @@
     month: "{{ cron_discovery_task.month | default ('*') }}"
     weekday: "{{ cron_discovery_task.weekday | default ('*') }}"
     user: "root "
-    job: "/usr/local/bin/Register-CronTasks.ps1"
+    job: "/usr/local/bin/Register-CronTasks.ps1 ; zabbix_sender -z {{ cron_zabbix_server }} -s {{ cron_zabbix_client }} -k trap[ansible_zabbix_discovery_tasks] -o $? >> /var/log/cron/ansible_zabbix_discovery_tasks"
     cron_file: "ansible_zabbix_discovery_tasks"
 
 
